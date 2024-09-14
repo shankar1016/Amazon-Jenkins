@@ -1,52 +1,35 @@
 pipeline {
-    agent { label 'ads01' }
-    
+    agent any
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/shankar1016/javaproj.git'
+                checkout([$class: 'GitSCM', 
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/shankar1016/Amazon-Jenkins.git']]
+                ])
             }
         }
+
         stage('Build') {
             steps {
-                bat '''
-                REM Define the workspace directory (optional)
-                set WORKSPACE=%CD%
-                
-                REM Pull the latest code or clone if not present
-                if exist "%WORKSPACE%\\.git" (
-                    echo Pulling latest code from the repository
-                    git -C "%WORKSPACE%" pull origin main
-                ) else (
-                    echo Cloning repository from the URL
-                    git clone -b main https://github.com/shankar1016/javaproj.git "%WORKSPACE%"
-                )
-                
-                REM Change to the workspace directory
-                cd /d "%WORKSPACE%"
-                
-                REM Run Maven build
-                echo Running Maven clean install
                 bat 'mvn clean install'
-                
-                REM Check Maven build result
-                if %ERRORLEVEL% NEQ 0 (
-                    echo Build failed with error code %ERRORLEVEL%
-                    exit /b %ERRORLEVEL%
-                ) else (
-                    echo Build succeeded
-                )
-                '''
+            }
+        }
+
+        stage('Post') {
+            steps {
+                echo 'Build completed'
             }
         }
     }
-    
+
     post {
-        success {
-            echo 'Build succeeded'
-        }
         failure {
             echo 'Build failed'
+        }
+        success {
+            echo 'Build succeeded'
         }
     }
 }
