@@ -1,35 +1,52 @@
-@echo off
-setlocal
-
-REM Set the working directory (optional)
-set WORKSPACE=%CD%
-
-REM Define repository URL and branch
-set REPO_URL=https://github.com/shankar1016/javaproj.git
-set BRANCH=main
-
-REM Clone or pull the latest code
-if exist %WORKSPACE%\.git (
-    echo Pulling latest code from %REPO_URL%
-    git -C %WORKSPACE% pull origin %BRANCH%
-) else (
-    echo Cloning repository from %REPO_URL%
-    git clone -b %BRANCH% %REPO_URL% %WORKSPACE%
-)
-
-REM Change to the workspace directory
-cd %WORKSPACE%
-
-REM Compile and build using Maven
-echo Running Maven compile and install
-mvn clean install
-
-REM Check if Maven build was successful
-if %ERRORLEVEL% NEQ 0 (
-    echo Build failed with error code %ERRORLEVEL%
-    exit /b %ERRORLEVEL%
-) else (
-    echo Build succeeded
-)
-
-endlocal
+pipeline {
+    agent { label 'ads01' }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/shankar1016/javaproj.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                bat '''
+                REM Define the workspace directory (optional)
+                set WORKSPACE=%CD%
+                
+                REM Pull the latest code or clone if not present
+                if exist "%WORKSPACE%\\.git" (
+                    echo Pulling latest code from the repository
+                    git -C "%WORKSPACE%" pull origin main
+                ) else (
+                    echo Cloning repository from the URL
+                    git clone -b main https://github.com/shankar1016/javaproj.git "%WORKSPACE%"
+                )
+                
+                REM Change to the workspace directory
+                cd /d "%WORKSPACE%"
+                
+                REM Run Maven build
+                echo Running Maven clean install
+                mvn clean install
+                
+                REM Check Maven build result
+                if %ERRORLEVEL% NEQ 0 (
+                    echo Build failed with error code %ERRORLEVEL%
+                    exit /b %ERRORLEVEL%
+                ) else (
+                    echo Build succeeded
+                )
+                '''
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Build succeeded'
+        }
+        failure {
+            echo 'Build failed'
+        }
+    }
+}
