@@ -27,7 +27,7 @@ pipeline {
                 
                 REM Run Maven build
                 echo Running Maven clean install
-                mvn clean install
+                bat 'mvn clean install'
                 
                 REM Check Maven build result
                 if %ERRORLEVEL% NEQ 0 (
