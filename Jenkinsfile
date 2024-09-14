@@ -1,5 +1,5 @@
 pipeline {
-    agent ads01
+    agent any
     stages {
 
         stage('pull') {
