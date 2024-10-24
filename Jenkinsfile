@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'linux01slave' }
+    agent any
     stages {
 
         stage('pull') {
